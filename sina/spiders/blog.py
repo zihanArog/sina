@@ -13,7 +13,8 @@ class BlogSpider(scrapy.Spider):
     start_uid = (6079534197, 1676317545, 3237705130, 1851755225, 1823887605)
 
     user_url = 'https://m.weibo.cn/api/container/getIndex?uid={uid}&luicode=10000011&lfid=100103type=1&type=uid&value={uid}&containerid=100505{uid}'
-    fans_url = 'https://m.weibo.cn/api/container/getIndex?containerid=231051_-_fans_-_{uid}&luicode=10000011&lfid=100505{uid}'
+    # fans_url = 'https://m.weibo.cn/api/container/getIndex?containerid=231051_-_fans_-_{uid}&luicode=10000011&lfid=100505{uid}'
+    fans_url = 'https://m.weibo.cn/api/container/getIndex?containerid=231051_-_fans_-_{uid}&luicode=10000011&lfid=100505{uid}&since_id={page}'
 
     def start_requests(self):
         for uid in self.start_uid:
@@ -40,8 +41,27 @@ class BlogSpider(scrapy.Spider):
             user_item[field] = text['data']['userInfo'][attr]
         return user_item
         # 爬粉丝信息
-        yield scrapy.Request(url=self.fans_url.format(uid=uid),callback=self.parse_fans)
+        yield scrapy.Request(url=self.fans_url.format(uid=uid, page=1), callback=self.parse_fans, meta={'page': 1})
 
     def parse_fans(self, response):
 
+        page=response.meta['page']+1
+        text = json.loads(response.text)
+        # 这个是一个页面里面人数
+        user_count = len(text['data']['cards'][-1]['card_group'])
+        user_base_item = UserBaseItem()
+        for i in range(user_count):
+            uid = text['data']['cards'][-1]['card_group'][i]['user']['id']
+            user_base_item['id'] = uid
+            user_base_item['name'] = text['data']['cards'][-1]['card_group'][i]['user']['screen_name']
+
+            # 返回item
+            yield user_base_item
+            # 爬取该用户的信息
+            yield scrapy.Request(url=self.user_url.format(uid=uid), callback=self.parse_user)
+
+        # 爬取下一页的fans
+        yield scrapy.Request(url=self.fans_url.format(uid=uid,page=page),callback=self.parse_fans,meta={'page':page})
+
+    def parse_blog(self,response):
         pass

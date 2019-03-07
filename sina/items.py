@@ -24,6 +24,13 @@ class UserItem(Item):
     avatar = Field()
 
 
+class UserBaseItem(Item):
+    collections = 'user_base'
+
+    id = Field()
+    name = Field()
+
+
 class RemarkItem(Item):
     collections = 'remarks'
 
