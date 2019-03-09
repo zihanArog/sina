@@ -11,7 +11,7 @@ from scrapy import Item, Field
 class UserItem(Item):
     collections = 'users'
 
-    id = Field()
+    user_id = Field()
     name = Field()
     blog_count = Field()
     verified = Field()
@@ -27,7 +27,7 @@ class UserItem(Item):
 class UserBaseItem(Item):
     collections = 'user_base'
 
-    id = Field()
+    user_id = Field()
     name = Field()
 
 
@@ -37,3 +37,12 @@ class RemarkItem(Item):
 
 class BlogItem(Item):
     collections = 'blog'
+
+    create_at = Field()
+    blog_id = Field()
+    text = Field()
+    user_id=Field() # 由谁发表的
+    user_name=Field()
+    forward_count=Field()   # 转发数
+    comments_count=Field()  # 评论数
+    attitudes_count=Field() # 点赞数
